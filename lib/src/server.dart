@@ -13,63 +13,57 @@ class DriftDevToolsServer {
     print('🔥 Iniciando Drift DevTools...');
 
     Future<Response> handler(Request request) async {
-      final path = request.url.path;
+      final segments = request.url.pathSegments;
+
+      print('📡 Request: ${request.url}');
 
       try {
-        // 🔹 LISTAR TABELAS
-        if (path == 'tables') {
-          final result = await db
-              .customSelect(
-                "SELECT name FROM sqlite_master WHERE type='table';",
+        // 🔹 /tables
+        if (segments.length == 1 && segments[0] == 'tables') {
+          print('📦 Listando tabelas');
+
+          final result = await db.customSelect("PRAGMA table_list;").get();
+
+          final tables = result
+              .map((e) => e.data['name'] as String)
+              .where(
+                (name) =>
+                    !name.startsWith('sqlite_') && name != 'android_metadata',
               )
+              .toList();
+
+          return Response.ok(jsonEncode(tables));
+        }
+
+        // 🔹 /table/{name}
+        if (segments.length == 2 && segments[0] == 'table') {
+          final table = segments[1];
+
+          print('➡️ Tabela solicitada: $table');
+
+          final result = await db
+              .customSelect('SELECT * FROM "$table" LIMIT 10;')
               .get();
 
-          return Response.ok(
-            jsonEncode(result.map((e) => e.data).toList()),
-            headers: {'Content-Type': 'application/json'},
-          );
+          final data = result.map((row) {
+            final map = row.data;
+
+            return map.map<String, String>((key, value) {
+              if (value is Uint8List) return MapEntry(key, '[BLOB]');
+              return MapEntry(key, value?.toString() ?? 'null');
+            });
+          }).toList();
+
+          return Response.ok(jsonEncode(data));
         }
 
-        // 🔹 DADOS DE UMA TABELA
-        if (path.startsWith('table/')) {
-          final table = path.split('/').last;
-
-          print('➡️ Recebi request da tabela: $table');
-
-          try {
-            print('⏳ Antes da query');
-
-            final result = await db
-                .customSelect('SELECT * FROM "$table" LIMIT 10;')
-                .get();
-
-            print('✅ Query executada');
-
-            final data = result.map((e) => e.data).toList();
-
-            print('📦 Dados convertidos');
-
-            return Response.ok(
-              jsonEncode(data),
-              headers: {'Content-Type': 'application/json'},
-            );
-          } catch (e, stack) {
-            print('❌ ERRO: $e');
-            print(stack);
-
-            return Response.internalServerError(body: e.toString());
-          }
-        }
-
+        print('❌ Rota não encontrada');
         return Response.notFound('Not found');
       } catch (e, stack) {
-        print('❌ Erro no Drift DevTools: $e');
+        print('❌ ERRO: $e');
         print(stack);
 
-        return Response.internalServerError(
-          body: jsonEncode({'error': e.toString()}),
-          headers: {'Content-Type': 'application/json'},
-        );
+        return Response.internalServerError(body: e.toString());
       }
     }
 

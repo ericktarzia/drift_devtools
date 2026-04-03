@@ -34,14 +34,31 @@ class DriftDevToolsServer {
         if (path.startsWith('table/')) {
           final table = path.split('/').last;
 
-          final result = await db
-              .customSelect("SELECT * FROM $table LIMIT 100;")
-              .get();
+          print('➡️ Recebi request da tabela: $table');
 
-          return Response.ok(
-            jsonEncode(result.map((e) => e.data).toList()),
-            headers: {'Content-Type': 'application/json'},
-          );
+          try {
+            print('⏳ Antes da query');
+
+            final result = await db
+                .customSelect('SELECT * FROM "$table" LIMIT 10;')
+                .get();
+
+            print('✅ Query executada');
+
+            final data = result.map((e) => e.data).toList();
+
+            print('📦 Dados convertidos');
+
+            return Response.ok(
+              jsonEncode(data),
+              headers: {'Content-Type': 'application/json'},
+            );
+          } catch (e, stack) {
+            print('❌ ERRO: $e');
+            print(stack);
+
+            return Response.internalServerError(body: e.toString());
+          }
         }
 
         return Response.notFound('Not found');

@@ -1,6 +1,6 @@
 name: drift_devtools
 description: "A Flutter package that provides a visual interface for inspecting and debugging Drift databases in real-time."
-version: 0.0.2
+version: 0.0.3
 homepage:
 
 environment:

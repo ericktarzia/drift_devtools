@@ -76,6 +76,53 @@ Os arquivos `*.g.dart` serão gerados ao lado dos arquivos anotados (ex.:
 `lib/flutter_drift_example.g.dart`). O exemplo do `example/` já depende do
 pacote via `path: ..` para facilitar execução local.
 
+## How to use / Como usar
+
+English
+
+1. Create or seed the example database (the package example does this):
+
+```bash
+cd drift_devtools
+dart pub get
+dart run lib/flutter_drift_example.dart
+```
+
+2. The example prints the DB path; you can also programmatically send the
+   generated file to the Drift DevTools (used by the extension) from your
+   app code. Example snippet:
+
+```dart
+final dbFolder = await getApplicationDocumentsDirectory();
+final file = File(p.join(dbFolder.path, 'drift_devtools_example.sqlite'));
+if (await file.exists()) {
+  // send the path to the devtools extension (if available)
+  await sendDbFileToDevTools(file.path);
+}
+```
+
+Português
+
+1. Gere ou popule o banco de exemplo (o exemplo do pacote faz isso):
+
+```bash
+cd drift_devtools
+dart pub get
+dart run lib/flutter_drift_example.dart
+```
+
+2. O exemplo imprime o caminho do DB; você também pode enviar o arquivo
+   gerado para o Drift DevTools diretamente do seu app. Trecho de exemplo:
+
+```dart
+final dbFolder = await getApplicationDocumentsDirectory();
+final file = File(p.join(dbFolder.path, 'drift_devtools_example.sqlite'));
+if (await file.exists()) {
+  // envia o caminho para a extensão Drift DevTools (se disponível)
+  await sendDbFileToDevTools(file.path);
+}
+```
+
 ## Exemplo rápido (snippet)
 
 ```dart
